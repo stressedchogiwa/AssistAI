@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssistAI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>AssistAI</h1>
+            <p>Your AI-powered document assistant</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <h2>Upload a Document</h2>
+                <p>Select a PDF document to get started.</p>
+
+                <input type="file" id="pdf-file" accept=".pdf">
+                <button id="upload-button">Upload PDF</button>
+
+                <p id="upload-status"></p>
+            </section>
+
+            <section class="chat-section">
+                <h2>Chat with AssistAI</h2>
+
+                <div id="chat-messages">
+                    <div class="message assistant">
+                        Hello! Upload a PDF and ask me questions about it.
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="Ask something..."
+                    >
+                    <button id="send-button">Send</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
