@@ -25,10 +25,30 @@ app.mount(
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
+
 # MARK: - Document Storage
 
 uploaded_document_text = ""
 uploaded_document_name = ""
+document_chunks = []
+
+
+# MARK: - Document Chunking
+
+def split_text_into_chunks(text, chunk_size=500, overlap=100):
+    chunks = []
+
+    start = 0
+
+    while start < len(text):
+        end = start + chunk_size
+
+        chunk = text[start:end]
+        chunks.append(chunk)
+
+        start += chunk_size - overlap
+
+    return chunks
 
 
 # MARK: - Models
@@ -68,22 +88,28 @@ def chat(request: ChatRequest):
         No school document has been uploaded yet.
         Do not pretend to know specific school information.
         """
+
     else:
         system_prompt = f"""
-        You are AssistAI, a helpful school document assistant.
+        You are AssistAI, a document assistant.
 
-        Answer the user's questions using the uploaded document below.
+        Answer ONLY using information from the uploaded document.
+        Do not invent, assume, or guess.
+        If the answer is not in the document, say so.
+        If information is incomplete or unclear, acknowledge it.
+        Keep answers concise and mention page numbers when possible.
 
-        Rules:
-        - Use the document as your primary source.
-        - Do not invent information.
-        - If the answer is not in the document, say so.
-        - Keep answers simple and easy to understand.
-        - Mention the page number when possible.
+        IMPORTANT RULES:
+        - Only answer using information explicitly stated in the uploaded document.
+        - Never infer, assume, or conclude something based on unrelated information.
+        - If a payment method is not explicitly listed, do not claim it is accepted.
+        - If information is not mentioned, clearly say:
+          "The document does not provide this information."
+        - Do not use unrelated facts to justify an answer.
+        - Keep answers focused on the user's question.
+        - Never interpret a missing detail as a "No" answer.
 
-        Document name: {uploaded_document_name}
-
-        DOCUMENT CONTENT:
+        Uploaded document:
         {uploaded_document_text}
         """
 
@@ -111,6 +137,7 @@ async def upload_document(file: UploadFile = File(...)):
 
     global uploaded_document_text
     global uploaded_document_name
+    global document_chunks
 
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
@@ -164,9 +191,12 @@ async def upload_document(file: UploadFile = File(...)):
     uploaded_document_text = extracted_text[:20000]
     uploaded_document_name = filename
 
+    document_chunks = split_text_into_chunks(uploaded_document_text)
+
     return {
         "message": "PDF uploaded and processed successfully!",
         "filename": filename,
         "pages": len(pdf_reader.pages),
-        "characters_extracted": len(extracted_text)
+        "characters_extracted": len(extracted_text),
+        "chunks_created": len(document_chunks)
     }
